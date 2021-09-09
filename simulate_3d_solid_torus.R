@@ -3,8 +3,8 @@ library(alphashape3d)
 library(pracma)
 n <- 10000
 p <- 10
-upper_bound <- 1
-lower_bound <- 0.5
+upper_bound <- 1 #distance from the center of the tube to the center of the torus
+lower_bound <- 0.6 #radius of the tube
 origin <- c(0,0,0)
 
 points_torus <- rtorus(n, lower_bound, upper_bound, ct= origin)
@@ -14,3 +14,4 @@ rand_ortho_matrix <- randortho(10, type = 'orthonormal')
 simulate_after <- simulate_before %*% rand_ortho_matrix
 
 simulate_after
+?rtorus
