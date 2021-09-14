@@ -1,27 +1,31 @@
+library(Matrix)
+library(igraph)
+library(data.table)
 ##This function tells you if two hyper-rectangles are adjacent to each other.
 ##The inputs are two hyper-rectangles, each stored in a 2*d matrix where d is the dimension of dataset.
 ##Three outputs;
 #The first output is logical, TRUE if adjacent;
 #The second is the connecting dimension if the first one is TRUE, otherwise -1;
 #The third one is the mid point of that on that connecting surface/hyper-plane.
+
 adjacent_direct <- function(R1, R2){
   i0 <- -1
   i <- 0
   d <- ncol(R1)
   for (j in 1:d){
-    if (R1[1,j] = R2){
+    if ((R1[2,j] == R2[1,j]) | (R2[2,j] == R1[1,j])){
       i0 <- j
       break
     }
   }
-  if (i0 = -1) return (list(FALSE, -1, NA)) 
+  if (i0 == -1) return (list(FALSE, -1, NA)) 
   else{
     coord <- rep(NA, d)
     for (j in 1:d){
       if (j != i0 & (R2[1,j] > R1[2,j] | R1[1,j] > R2[2,j])) return (list(FALSE, -1, NA)) 
       else if (j != i0 & (R2[1,j] <= R1[2,j])) coord[j] <- (R2[1,j] + R1[2,j])/2
       else if (j != i0 & (R1[1,j] <= R2[2,j])) coord[j] <- (R1[1,j] + R2[2,j])/2
-      else if (j = i0 & R1[2,j] == R2[1,j]) coord[j] <- R1[2,j]
+      else if (j == i0 & R1[2,j] == R2[1,j]) coord[j] <- R1[2,j]
       else coord[j] <- R2[2,j]
     }
   }
@@ -32,99 +36,93 @@ adjacent_direct <- function(R1, R2){
 ##The input are a list of hyper-rectangles, where each is 2*d.
 simple_graph <- function(all_rec){
   n <- length(all_rec)
-  dim <- ncol(all_rec[1])
+  dim <- ncol(all_rec[[1]])
   sparse_connecting <- Matrix(FALSE, n, n, sparse = TRUE)
   for (i in 1:n){
-    R1 <- all_rec[i]
+    R1 <- all_rec[[i]]
     for (j in i:n){
-      R2 <- all_rec[j]
+      R2 <- all_rec[[j]]
       s <-adjacent_direct(R1, R2) 
-      connecting[i,j] <- s[1]
+      sparse_connecting[i,j] <- s[[1]]
     }
   }
-  return (connecting)
+  return (sparse_connecting)
 }
 
 
-is.removable <- function(all_graph,hpd_index,complement_index,adjacency,v,removed_index, targed = 'HPD'){
-  adjacent_vertices <- adjacency[v]
-  if (target = 'HPD') compare_index <- complement_index
-  else compare <- hpd_index
-  k <- setdiff(adjacent_vertices, union(removed_index, compare_index))
-  if (length(k)=0) return (FALSE)
-      #This means it's not at the boundary
-  else{
-      sub <- subgraph(all_graph, k)
-      if (is.chordal(sub)) return (TRUE)
-      else return (FALSE)
-  }
-}
-
-
-##Erode the hyper_rectangles iteratively.
-
-erosion <- function(hpd, complement){
-  l <- length(hpd)
-  n <- length(all)
-  all_rec <- append(hpd, complement)
-  all_matrix <- simple_graph(all)
+erosion <- function(HPD, complement){
+  l <- length(HPD)
+  all_rec <- append(HPD, complement)
+  n <- length(all_rec)
+  all_matrix <- simple_graph(all_rec)
   all_graph <- graph_from_adjacency_matrix(all_matrix, mode = 'undirected')
-  hpd_index <- c(1:l)
-  complement_index <- c(l+1:n)
-  boundary_hpd_index <- c()
-  boundary_complement_index <- c()
-  removed_index<- c()
+  hpd_vertices <- c(1:l)
+  complement_vertices <- c((l+1):n)
+  boundary_hpd_vertices <- c()
+  boundary_complement_vertices <- c()
+  removed_vertices<- c()
   
-  #Create a list of index to store the adjacent vertices, whichis static
+  #Create a list of indicies to store the adjacent vertices, which is static
   adjacency <- vector(mode = 'list', length = n)
   for (i in 1:n) adjacency[i] <- adjacent_vertices(all_graph,i)
   
-  #First erode HPD hyper_rectangles
+  #First erode HPD sets
+  #Initiated with a set of HPD sets at the boundary
   for (i in 1:l){
-    if (is.removable(all_graph, hpd_index, complement_index,adjacency,i,removed_index, target = 'HPD')){
-      removed_index <- c(removed_index,i)
-      hpd_index <- setdiff(hpd_index,i)
-      boundary_hpd_index <- setdiff(c(boundary_hpd_index, intersect(adjacency[i],hpd_index)),i)
-    }
+    if (isempty(intersect(adjacency[[i]],complement_vertices))) next
+    else boundary_hpd_vertices <- c(boundary_hpd_vertices, i)
   }
-  change <- 1
+  change <- -1
   while (change != 0){
-    l1 <- length(hpd_index)
-    candidate <- copy(boundary_hpd_index)
-    for (i in candidate){
-      if (is.removable(all_graph, hpd_index, complement_index,adjacency,i,removed_index, target = 'HPD')){
-        removed_index <- c(removed_index,i)
-        hpd_index <- setdiff(hpd_index,i)
-        boundary_hpd_index <- setdiff(c(boundary_hpd_index, intersect(adjacency[i],hpd_index)),i)
+    before_hpd <- hpd_vertices
+    before_boundary <- copy(boundary_hpd_vertices)
+    for (i in before_boundary){
+      adjacent_vertices <- adjacency[[i]]
+      compare_vertices <- union(complement_vertices, removed_vertices)
+      hpd_neighbour <- setdiff(adjacent_vertices, compare_vertices)
+      other_neighbour <- setdiff(adjacent_vertices, hpd_neighbour)
+      if (isempty(hpd_neighbour)) next
+      else if (is_connected(induced_subgraph(all_graph, hpd_neighbour)) & is_connected(induced_subgraph(all_graph, other_neighbour))){
+        removed_vertices <- c(removed_vertices,i)
+        hpd_vertices <- setdiff(hpd_vertices,i)
+        boundary_hpd_vertices <- setdiff(union(boundary_hpd_vertices, hpd_neighbour),i)
       }
-    l2 <- length(hpd_index)
-    change <- l1-l2
+      else next
     }
+    change <- length(setdiff(before_hpd,hpd_vertices))
   }
   
-  #Then erode Non-HPD hyper-rectangles
-  for (i in l+1:n){
-    if (is.removable(all_graph, hpd_index, complement_index,adjacency,i,removed_index, target = 'other')){
-      removed_index <- c(removed_index,i)
-      complement_index <- setdiff(complement,i)
-      boundary_complement_index <- setdiff(c(boundary_complement_index, intersect(adjacency[i],complement_index)),i)
-    }
+  #Then erode complement sets
+  #Initiated with a set of complement sets at the boundary
+  for (i in (l+1):n){
+    if (isempty(intersect(adjacency[[i]],union(hpd_vertices,removed_vertices)))) next
+    else boundary_complement_vertices <- c(boundary_complement_vertices, i)
   }
-  change <- 1
+  change <- -1
   while (change != 0){
-    l1 <- length(complement_index)
-    candidate <- copy(boundary_complement_index)
-    for (i in candidate){
-      if (is.removable(all_graph, hpd_index, complement_index,adjacency,i,removed_index, target = 'other')){
-        removed_index <- c(removed_index,i)
-        complement_index <- setdiff(complement_index,i)
-        boundary_complement_index <- setdiff(c(boundary_complement_index, intersect(adjacency[i],complement_index)),i)
+    before_complement <- complement_vertices
+    before_boundary <- copy(boundary_complement_vertices)
+    for (i in before_boundary){
+      adjacent_vertices <- adjacency[[i]]
+      compare_vertices <- union(hpd_vertices, removed_vertices)
+      complement_neighbour <- setdiff(adjacent_vertices, compare_vertices)
+      other_neighbour <- setdiff(adjacent_vertices, complement_neighbour)
+      if (isempty(complement_neighbour)) next
+      else if (is_connected(induced_subgraph(all_graph, complement_neighbour)) & is_connected(induced_subgraph(all_graph, other_neighbour))){
+        removed_vertices <- c(removed_vertices,i)
+        complement_vertices <- setdiff(complement_vertices,i)
+        boundary_complement_vertices <- setdiff(union(boundary_complement_vertices, complement_neighbour),i)
       }
-      l2 <- length(complement_index)
-      change <- l1-l2
+      else next
     }
+    change <- length(setdiff(before_complement,complement_vertices))
   }
-  return(hpd_index, complement_index, removed_index)
+  return (list(hpd_vertices, complement_vertices, removed_vertices))
 }
+
+  
+  
+  
+
 
 
