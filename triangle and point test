@@ -1,0 +1,44 @@
+  
+heron<-function(x,y,z){
+  v1<-y-x
+  v2<-z-y
+  v3<-x-z
+  l1<-sqrt(sum(v1^2))
+  l2<-sqrt(sum(v2^2))
+  l3<-sqrt(sum(v3^2))
+  s<-(l1+l2+l3)/2
+  area<-sqrt(s*(s-l1)*(s-l2)*(s-l3))
+  return(area) 
+}#function to calculate triangle area, input are the coordinates of the vertexes 
+
+interior<-function(x,y,z,p){
+  A0<-heron(x,y,z)
+  A1<-heron(x,y,p)
+  A2<-heron(y,z,p)
+  A3<-heron(x,z,p)
+  if (abs(A0-A1-A2-A3)<1*e^(-10)){print("point inside triangle")} else{print("point outside triangle")}
+}#input are coordinates of the points in d dimensions
+
+
+##Compute barycentric coordinates (u, v, w) for
+## point p with respect to triangle (a, b, c)
+f<-function(a, b, c, p){
+  v0 = b-a;
+  v1 = c-a;
+  v2 = p-a;
+  d00 = Dot(v0, v0);
+  d01 = Dot(v0, v1);
+  d11 = Dot(v1, v1);
+  d20 = Dot(v2, v0);
+  d21 = Dot(v2, vl);
+  denom = d00 * dll-d01 * d01;
+  v = (dll * d20 - d01 * d21) / denom;
+  w = (d00 * d21 - d01 * d20) / denom;
+  u=1.0-v-w;
+}
+if(0<v&w&u<1){
+  print("TRUE")
+}else{
+  print("FALSE")
+}
+
