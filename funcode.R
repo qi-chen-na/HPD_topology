@@ -280,3 +280,6 @@ cred.est1 = function(test,train.sim,train,tau,alpha,p.alpha,f.test,f.low){
   
   return(list(cre.set=cred.set,n.tree=length(uni_space),tau.out=tau0,prob=r$coverage_prob,uni_space=uni_space,uni_prob=uni_prob,uni_density=result$uni_density,y.out=y.out))
 }
+
+
+

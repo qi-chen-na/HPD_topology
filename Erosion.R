@@ -54,17 +54,36 @@ erosion <- function(HPD, complement){
   l <- length(HPD)
   all_rec <- append(HPD, complement)
   n <- length(all_rec)
-  all_matrix <- simple_graph(all_rec)
-  all_graph <- graph_from_adjacency_matrix(all_matrix, mode = 'undirected')
+  d <- ncol(all_rec[[1]])
   hpd_vertices <- c(1:l)
-  complement_vertices <- c((l+1):n)
+  complement_vertices <- c((l+1):(n+1))
+  all_matrix <- simple_graph(all_rec)
+  
+  #Check over all the cells and store the cells and the edge of the space
+  edge_indices <- c()
+  for (i in 1:length(all_cells)){
+    rec <- all_cells[[i]]
+    is_edge <- 0
+    for (j in rec[2,]){
+      if (j == 1) is_edge <- 1
+    }
+    for (j in rec[1,]){
+      if (j == 0) is_edge <- 1
+    }
+    if (is_edge == 1) edge_indices <- c(edge_indices, i)
+  }
+  #Connecting complements at the edge to an additional vertex so that all complements are connected
+  all_matrix <- cbind(rbind(all_matrix,rep(0,n)),rep(0,(n+1)))
+  for (i in edge_indices) all_matrix[i,(n+1)] <- 1
+  all_graph <- graph_from_adjacency_matrix(all_matrix, mode = 'undirected')
+
   boundary_hpd_vertices <- c()
   boundary_complement_vertices <- c()
   removed_vertices<- c()
   
   #Create a list of indicies to store the adjacent vertices, which is static
-  adjacency <- vector(mode = 'list', length = n)
-  for (i in 1:n) adjacency[i] <- adjacent_vertices(all_graph,i)
+  adjacency <- vector(mode = 'list', length = (n+1))
+  for (i in 1:(n+1)) adjacency[i] <- adjacent_vertices(all_graph,i)
   
   #First erode HPD sets
   #Initiated with a set of HPD sets at the boundary
@@ -90,6 +109,9 @@ erosion <- function(HPD, complement){
       else next
     }
     change <- length(setdiff(before_hpd,hpd_vertices))
+    change
+    length(removed_vertices)
+    length(hpd_vertices)
   }
   
   #Then erode complement sets
@@ -123,6 +145,5 @@ erosion <- function(HPD, complement){
   
   
   
-
-
-
+plot(induced_subgraph(all_graph,intersect(adjacency[[35]],hpd_vertices)))
+                                                  

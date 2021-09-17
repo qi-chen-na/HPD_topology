@@ -41,26 +41,29 @@ torus_simulate <- function(n, p, R = 1, r = 0.6, origin = c(0, 0, 0)){
   return (simulate_after)
 }
 
-n <- 10000
-p <- 2
-shell_points1 <- shell_simulate(n,p)
-shell_points2 <- shell_simulate(n,p)
-ball_points1 <- ball_simulate(n,p)
-ball_points2 <- ball_simulate(n,p)
-torus_points <- torus_simulate(n,p)
 
+##plot the result of erosion by choosing the first two coords. 
 
+plot_result <- function(all_cells, hpd_vertices, complement_vertices, removed_vertices){
+  for(i in removed_vertices){
+    pt=all_cells[[i]][,xx]
+    pt[,1]=pt[,1]*diff(f1)+f1[1]; pt[,2]=pt[,2]*diff(f2)+f2[1]
+    lines(c(pt[1,1],pt[2,1],pt[2,1],pt[1,1],pt[1,1]),c(pt[1,2],pt[1,2],pt[2,2],pt[2,2],pt[1,2]),col='green') 
+  }
+  for(i in 1:length(out$cre.set)){
+    pt=all_cells[[i]][,xx]
+    pt[,1]=pt[,1]*diff(f1)+f1[1]
+    pt[,2]=pt[,2]*diff(f2)+f2[1]
+    lines(c(pt[1,1],pt[2,1],pt[2,1],pt[1,1],pt[1,1]),c(pt[1,2],pt[1,2],pt[2,2],pt[2,2],pt[1,2]),col='blue') 
+  }
+  for(i in e[[2]]){
+    pt=all_cells[[i]][,xx]
+    pt[,1]=pt[,1]*diff(f1)+f1[1]; pt[,2]=pt[,2]*diff(f2)+f2[1]
+    lines(c(pt[1,1],pt[2,1],pt[2,1],pt[1,1],pt[1,1]),c(pt[1,2],pt[1,2],pt[2,2],pt[2,2],pt[1,2]),col='red') 
+  }
+}
 
 source('funcode.R')
-conv_training <- convert.marginal(ball_points1,ball_points1)
-conv_testing <- convert.marginal(ball_points1,ball_points2)
-
-
-out=cred.est2(test=conv_testing,train.sim=shell_points1,train=conv_training,tau=vector_tau,alpha=alpha,p.alpha=0.95)
-out
-
-
-
 
 
 n <- 10000
@@ -72,16 +75,15 @@ conv_testing <- convert.marginal(train.sim,test.sim)
 alpha=0.1; #target quantile level
 vector_tau = seq(0.5,0.01,len=10)
 out=cred.est2(test=conv_testing,train.sim=train.sim,train=conv_training,tau=vector_tau,alpha=alpha,p.alpha=0.95)
-out
+
 
 source('Erosion.R')
 
 #test erosion algorithm
-k <- length(out$n.tree)
+k <- out$n.tree
 HPD <- out$cre.set
 all_cells <- out$uni_space
 complement <- all_cells[(length(HPD)+1):k]
-
 
 xx=c(1,2); f1=range(ball_points1[,xx[1]]); f2=range(ball_points1[,xx[2]])
 exam.sim <- ball_simulate(n,p)
@@ -93,29 +95,13 @@ e <- erosion(HPD, complement)
 end_time <- Sys.time()
 end_time - start_time
 
-plot_result <- function(all_cells, hpd_vertices, complement_vertices, removed_vertices){
-  for(i in removed_vertices){
-    pt=all_cells[[i]][,xx]
-    pt[,1]=pt[,1]*diff(f1)+f1[1]; pt[,2]=pt[,2]*diff(f2)+f2[1]
-    lines(c(pt[1,1],pt[2,1],pt[2,1],pt[1,1],pt[1,1]),c(pt[1,2],pt[1,2],pt[2,2],pt[2,2],pt[1,2]),col='green') 
-  }
-  for(i in hpd_vertices){
-    pt=all_cells[[i]][,xx]
-    pt[,1]=pt[,1]*diff(f1)+f1[1]
-    pt[,2]=pt[,2]*diff(f2)+f2[1]
-    lines(c(pt[1,1],pt[2,1],pt[2,1],pt[1,1],pt[1,1]),c(pt[1,2],pt[1,2],pt[2,2],pt[2,2],pt[1,2]),col='red') 
-  }
-  for(i in complement_vertices){
-    pt=all_cells[[i]][,xx]
-    pt[,1]=pt[,1]*diff(f1)+f1[1]; pt[,2]=pt[,2]*diff(f2)+f2[1]
-    lines(c(pt[1,1],pt[2,1],pt[2,1],pt[1,1],pt[1,1]),c(pt[1,2],pt[1,2],pt[2,2],pt[2,2],pt[1,2]),col='blue') 
-  }
-}
-
-
 
 plot_result(all_cells, e[[1]],e[[2]],e[[3]])
 
 
 
-
+e[[1]]
+e[[2]]
+e[[3]]
+all_cells
+all_graph
