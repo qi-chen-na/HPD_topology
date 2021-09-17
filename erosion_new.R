@@ -133,6 +133,7 @@ erosion1 <- function(HPD, complement){
     }
     change <- length(setdiff(before_hpd,hpd_vertices))
   }
+  return (list(all_graph, list(hpd_vertices, complement_vertices, removed_vertices)))
 }
 
 
