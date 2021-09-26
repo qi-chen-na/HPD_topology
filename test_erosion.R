@@ -131,7 +131,6 @@ length(all_cells)
 all_graph
 is_connected(all_cells)
 
-
 dev.new()
 plot(exam.sim[,xx],col='darkgrey',xlim=range(train.sim[,xx[1]]),ylim=range(train.sim[,xx[2]]))
 for (i in hpd_vertices){
@@ -143,4 +142,14 @@ for (i in hpd_vertices){
   rect(xleft, ybottom, xright, ytop, density = 11, angle = 45, col = 'red')
 }
 
+#check torus
+n = 100000
+r = 0.5
+R = 1
+train.sim <- rtorus(n, r, R, ct= origin)
+test.sim <- rtorus(n, r, R, ct= origin)
+conv_training <- convert.marginal(train.sim,train.sim)
+conv_testing <- convert.marginal(train.sim,test.sim)
+vector_tau = seq(0.5,0.01,len=10)
+out=cred.est2(test=conv_testing,train.sim=train.sim,train=conv_training,tau=vector_tau,alpha=alpha,p.alpha=0.95)
 

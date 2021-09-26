@@ -1,11 +1,15 @@
 library(Matrix)
 library(igraph)
+library(pracma)
 library(data.table)
 
+##Test if two cells are weakly adjacent
+#Inputs are two cells stored in 2*d array
 adjacent_weak <- function(R1, R2){
   i0 <- -1
   i <- 0
   d <- ncol(R1)
+  #check if there're two interval meet at the same dimension
   for (j in 1:d){
     if ((R1[2,j] == R2[1,j]) | (R2[2,j] == R1[1,j])){
       i0 <- j
@@ -21,6 +25,8 @@ adjacent_weak <- function(R1, R2){
   return (TRUE)
 }
 
+##Test if two cells are strongly adjacent
+#Inputs are two cells stored in 2*d array
 adjacent_strong <- function(R1, R2){
   i0 <- -1
   i <- 0
@@ -34,17 +40,16 @@ adjacent_strong <- function(R1, R2){
   if (i0 == -1) return (FALSE) 
   else{
     for (j in 1:d){
+      #Strongly adjacent would require all other intervals overlap, so equality at some dim would return a false.
       if (j != i0 & (R2[1,j] >= R1[2,j] | R1[1,j] >= R2[2,j])) return (FALSE)
     }
   }
   return (TRUE)
 }
 
-is_boundary <- function(all_graph, cell){
-  
-}
 
-#Using the idea that we only erode b
+
+
 erosion1 <- function(HPD, complement){
   l <- length(HPD)
   all_rec <- append(HPD, complement)
@@ -52,6 +57,10 @@ erosion1 <- function(HPD, complement){
   d <- ncol(all_rec[[1]])
   hpd_vertices <- c(1:l)
   complement_vertices <- c((l+1):(n+1))
+  
+  ##Construct a graph by adjacency relationship
+  #It's a directed graph where the direction always goes from lower index to larger index
+  #The type of adjacency is defined by the color of the edge
   all_graph <- make_empty_graph((n+1))
   for (i in 1:n){
     R1 <- all_rec[[i]]
@@ -64,7 +73,8 @@ erosion1 <- function(HPD, complement){
     }
   }
   
-  #Check over all the cells and store the cells and the edge of the space
+  #Define cells at the edge of space by "if the cell share a hyperplane of dim d-1 to with the boundary of the space"
+  #Check over all the cells and store the edge indices.
   edge_indices <- c()
   for (i in 1:length(all_cells)){
     rec <- all_cells[[i]]
@@ -78,7 +88,7 @@ erosion1 <- function(HPD, complement){
     if (is_edge == 1) edge_indices <- c(edge_indices, i)
   }
   
-  #Introduce a ghost cell labelled (n+1), which is strongly adjacent to every vertex at the edge of the space
+  #Introduce a ghost cell labelled (n+1), which is strongly adjacent to every vertices at the edge of the space
   for (i in edge_indices){
     all_graph <- all_graph + edges(c(i, (n+1)), color = 'red') #The ghost vertex is strongly adjacent to every vertex at the edge of the space
   }
@@ -87,7 +97,7 @@ erosion1 <- function(HPD, complement){
   boundary_complement_vertices <- c()
   removed_vertices<- c()
 
-  #First erode HPD sets
+  ##First erode HPD sets
   #Initiated with a set of HPD sets at the boundary
   for (i in 1:l){
     all_neighbours <- adjacent_vertices(all_graph,i, mode = 'all')[[1]]
