@@ -24,7 +24,7 @@ eight <- function(n,r,R){
 
 eight_points1 <- eight(n,r,R)
 #Visualization of the eight-shape object
-plot(eight_points1)
+plot(eight_points1, xlab = 'x', ylab = 'y')
 eight_points2 <- eight(n,r,R)
 
 #Implement HPD sets estimation
@@ -43,8 +43,7 @@ complement <- all_cells[(length(HPD)+1):k]
 
 ##Visualization of the estimated HPD sets
 #Plot HPD sets in red
-dev.new()
-plot(eight_points1)
+# dev.new()
 xx <- c(1,2)
 f1=range(eight_points1[,xx[1]]); f2=range(eight_points1[,xx[2]])
 for (i in 1:length(HPD)){
@@ -64,10 +63,11 @@ for (i in (length(HPD)+1):k){
 }
 
 ##Apply erosion method on the multivariate normal data
-e <- erosion1(HPD, complement)
-all_graph <- e[[1]]
+e <- erosion2(HPD, complement)
+graph <- e[[1]]
 HPD_vertices <- e[[2]][[1]]
-
+plot(as.undirected(induced_subgraph(graph,HPD_vertices)), vertex.size = 1)
+rglplot(induced_subgraph(graph, HPD_vertices), vertex.size = 1)
 #plot the HPD set remains
 for (i in HPD_vertices){
   pt=all_cells[[i]][,xx]

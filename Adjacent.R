@@ -4,7 +4,6 @@
 #The first output is logical, TRUE if adjacent;
 #The second is the connecting dimension if the first one is TRUE, otherwise -1;
 #The third one is the mid point of that on that connecting surface/hyper-plane.
-
 adjacent_direct <- function(R1, R2){
   i0 <- -1
   i <- 0
@@ -28,8 +27,6 @@ adjacent_direct <- function(R1, R2){
   }
   return (list(TRUE, i0, coord))
 }
-
-
 #Construct a graph embedded in space.
 #Input is a list of hyper-rectangles, each entry is stored in 2*d matrix.
 ##Two outputs;
@@ -53,34 +50,15 @@ space_graph <- function(HPD){
   return (list(centre, connecting))
 }
 
-##Turn the space_graph to a sparse matrix
-decompose <- function(centre, connecting){
-  k <- length(centre)
-  n <- sum(is.na(connecting))
-  l <- k
-  sparse_graph <- Matrix(FALSE,n + k, n + k,sparse = TRUE)
-  for (i in 1:k){
-    for (j in i:k){
-      connecting_point <- connecting[i,j]
-      if (is.na(connecting_point)) next
-      else{
-        centre <- c(centre, connecting_point)
-        l <- l + 1
-        sparse_graph[i,l] = sparse_graph[j,l] = sparse_graph[l,j] = sparse_graph[l.i] = TRUE
-      }
-    }
+#m_adjacency in the sense that two cells are adjacent if there intersection is larger than d-1-m.
+#e.g. when m = 0, this is strong adjacent.
+m_adjacent<- function(R1, R2, m){
+  i <- 0
+  d <- ncol(R1)
+  for (j in 1:d){
+    if (R2[1,j] > R1[2,j] | R1[1,j] > R2[2,j] | i > m + 1) return (FALSE)
+    else if (R2[1,j] == R1[2,j] | R1[1,j] == R2[2,j]) i <- i + 1
   }
-  return (list(centre, sparse_graph))
+  return (TRUE)
 }
 
-##
-topo <- function(HPD, complement){
-  s_HPD <- space_graph(HPD)
-  s_complement <- space_graph(complement)
-  edges_HPD <- sparse_graph(s_HPD[1],s_HPD[2])
-  edges_complement <- sparse_graph(s_complement[1], s_complement[2])
-  
-  
-
-  
-}

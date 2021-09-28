@@ -8,8 +8,8 @@ n <- 100000
 sigma <- matrix(c(10,3,3,2),2,2)
 mu <- c(0,0)
 mvrn_points1 <- mvrnorm(n,mu,Sigma = sigma)
-dev.new()
-plot(mvrn_points1)
+# dev.new()
+plot(mvrn_points1, xlab = 'x', ylab = 'y')
 mvrn_points2 <- mvrnorm(n,mu,Sigma = sigma)
 
 #Implement HPD sets estimation
@@ -35,7 +35,7 @@ for (i in 1:length(HPD)){
   pt[,1]=pt[,1]*diff(f1)+f1[1]
   pt[,2]=pt[,2]*diff(f2)+f2[1]
   xleft <- pt[1,1]; ybottom <- pt[1,2]; xright <- pt[2,1]; ytop <- pt[2,2]
-  rect(xleft, ybottom, xright, ytop, density = 11, angle = 45, col = 'red')
+  rect(xleft, ybottom, xright, ytop, density = 20, angle = 45, col = 'red')
 }
 #Plot complement sets in blue
 for (i in (length(HPD)+1):k){
@@ -43,11 +43,11 @@ for (i in (length(HPD)+1):k){
   pt[,1]=pt[,1]*diff(f1)+f1[1]
   pt[,2]=pt[,2]*diff(f2)+f2[1]
   xleft <- pt[1,1]; ybottom <- pt[1,2]; xright <- pt[2,1]; ytop <- pt[2,2]
-  rect(xleft, ybottom, xright, ytop, density = 11, angle = 45, col = 'blue')
+  rect(xleft, ybottom, xright, ytop, density = 20, angle = 45, col = 'blue')
 }
 
 ##Apply erosion method on the multivariate normal data
-e <- erosion1(HPD, complement)
+e <- erosion2(HPD, complement)
 all_graph <- e[[1]]
 HPD_vertices <- e[[2]][[1]]
 
@@ -57,7 +57,7 @@ for (i in HPD_vertices){
   pt[,1]=pt[,1]*diff(f1)+f1[1]
   pt[,2]=pt[,2]*diff(f2)+f2[1]
   xleft <- pt[1,1]; ybottom <- pt[1,2]; xright <- pt[2,1]; ytop <- pt[2,2]
-  rect(xleft, ybottom, xright, ytop, density = 11, angle = 45, col = 'green')
+  rect(xleft, ybottom, xright, ytop, density = 30, angle = 45, col = 'green')
 }
 
 #plot the graph of HPD set remains
