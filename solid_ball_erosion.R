@@ -42,7 +42,7 @@ complement <- all_cells[(length(HPD)+1):k]
 e <- erosion2(HPD, complement)
 graph <- e[[1]]
 HPD_vertices <- e[[2]][[1]]
-plot(induced_subgraph(graph,HPD_vertices), vertex.size = 1)
+rglplot(induced_subgraph(graph,HPD_vertices), vertex.size = 1)
 all_cells[[1]]
 
 plot(ball_points1)

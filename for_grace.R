@@ -11,7 +11,7 @@ for_grace <- function(train.sim, test.sim){
   HPD <- out$cre.set
   all_cells <- out$uni_space
   complement <- all_cells[(length(HPD)+1):k]
-  e <- erosion_1(HPD, complement)
+  e <- erosion2(HPD, complement)
   before <- list(c(1:length(HPD)),c((length(HPD)+1):k),c())
   adjacency_matrix <- as_adjacency_matrix(e[[1]], type = 'both')
   return (list(out$uni_space, before, e[[2]], adjacency_matrix))

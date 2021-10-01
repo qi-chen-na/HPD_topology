@@ -224,10 +224,12 @@ erosion2 <- function(HPD, complement){
       compare_vertices <- union(complement_vertices, removed_vertices)
       hpd_neighbours <- setdiff(all_neighbours, compare_vertices)
       other_neighbours <- setdiff(all_neighbours, hpd_neighbours)
+      hpd_neighbours_graph <- induced_subgraph(all_graph, hpd_neighbours)
+      hpd_neighbours_graph <- delete_edges(hpd_neighbours_graph,E(hpd_neighbours_graph)[E(hpd_neighbours_graph)$color == 'blue'])
       other_neighbours_graph <- induced_subgraph(all_graph, other_neighbours)
       other_neighbours_graph <- delete_edges(other_neighbours_graph,E(other_neighbours_graph)[E(other_neighbours_graph)$color == 'blue'])
       if (isempty(hpd_neighbours)) next
-      else if (is_connected(induced_subgraph(all_graph, hpd_neighbours)) & is_connected(other_neighbours_graph)){
+      else if (is_connected(hpd_neighbours_graph) & is_connected(other_neighbours_graph)){
         removed_vertices <- c(removed_vertices,i)
         hpd_vertices <- setdiff(hpd_vertices,i)
         boundary_hpd_vertices <- setdiff(boundary_hpd_vertices,i)
